@@ -3,8 +3,7 @@
 #show: show-theorion
 
 = Elementary Category Theory and Univalent Foundations
-Lecture Note 1 \
-Jan 12, 2026 \
+Lecture Notes \
 Max Misterka
 
 == Tentative Schedule
@@ -68,6 +67,7 @@ Category theory provides a general way to think about all of these classes of ob
   - $Ring$
   - $K"-"#h(-0.1em)Vect$, for a field $K$
   - $Top$
+  - $NN$, where there is a unique morphism $a -> b$ when $a < b$
   - $Trivial$
   - $G$, for any group $G$, with one object
 ]
@@ -84,7 +84,9 @@ How can we generalize the idea of two sets, groups, etc. being isomorphic? Ideal
 
 This is the first example of a recurring trend: we will try to state many important properties of objects like sets, groups, rings, etc. using purely functions and function composition, while ignoring elements.
 
-== Other Universal Constructions
+== Universal Constructions
+
+*TODO: write out the formal definition of a product* (for now, just look at Wikipedia if you want to see it)
 
 - Products
 
@@ -101,9 +103,24 @@ This is the first example of a recurring trend: we will try to state many import
 
 #image("images/tensor_product.png")
 
-*TODO: note that all of these constructions are unique up to isomorphism*
+All of these constructions are unique up to isomorphism. This can be proved by noting that if we have two objects $P_1$ and $P_2$ which are both products, we have a morphism $P_1 -> P_2$ since $P_1$ maps into $X_1$ and $X_2$, but we also have a morphism $P_2 -> P_1$ since $P_2$ maps into $X_1$ and $X_2$, and the diagram commutes. Since these morphisms are the unique morphisms making this diagram commute, $P_1$ and $P_2$ are isomorphic. TODO expand this paragraph
 
-*TODO: introduce functors, $Cat$, and opposite categories*
+== Functors
+
+All of the objects (groups, rings, etc.) we were considering above have some kind of structure on top of a set. But you may have noticed that categories also have such a structure: they are a set of objects and a set of morphisms with the additional structure of the composition operator. So is there a notion of structure-preserving functions between categories? Yes, and it is called a functor.
+
+#definition(title: "functor")[#emph[
+  A functor from a category $C = (O, M, of)$ to a category $C' = (O', M', of')$ is a pair $(F_O, F_M)$, where $F_O : O -> O'$ and $F_M : M -> M'$, such that:
+  - If $f in M$ then $dom(F_M (f)) = F_O (dom(f))$ and $cod(F_M (f)) = F_O (cod(f))$.
+  - If $A in O$ then $F_M (1_A) = 1'_(F_O (A))$, where $1'$ denotes an identity morphism for an object in $C'$.
+  - If $f, g in M$ such that $f of g$ is defined, then $F_M (f of g) = F_M (f) of' F_M (g)$.
+]]
+
+We can now consider categories themselves as objects and functors as morphisms between these objects, allowing us to define the category of categories, $Cat$.
+
+*TODO: discuss duality and natural transformations*
+
+#image("images/natural.png")
 
 == Exercises
 
@@ -113,5 +130,11 @@ All of the exercises require answering with a proof for a fully complete answer.
 - Do all pairs of objects in $Set$ have a coproduct? If so, what is it?
   - What about in $Grp$?
   - What about in $K"-"#h(-0.1em)Vect$?
-  - What about in $Nat$? What about in the opposite category of $Nat$?
+  - What about in $NN$? What about in the opposite category of $NN$?
 - Is $K"-"#h(-0.1em)Vect$ isomorphic (as an object of $Cat$) to its opposite category?
+
+== The Yoneda Lemma
+
+#image("images/yoneda.png")
+
+This generalizes Cayley's theorem from group theory! TODO explain
