@@ -203,7 +203,23 @@ It turns out that a lot of the concepts from real analysis generalize to the set
 
 This corresponds to the usual definition of continuity when using the standard topology on $RR^n$. To see this, think about open sets in $RR^n$ as unions of open balls. Then, this definition is equivalent to saying that if $f$ maps a point $x$ to a point $y$, then no matter how small an open ball $U$ we make around $y$, we can always find an open ball $V$ around $x$ which gets mapped by $f$ into $U$. The radii of the balls $U$ and $V$ correspond to $epsilon$ and $delta$ from real analysis.
 
-Now we can define $Top$, the category of topological spaces. Its objects are all topological spaces and its morphisms are continuous functions between them, with composition defined as it usually is for functions.
+Now we can define $Top$, the category of topological spaces. Its objects are all topological spaces and its morphisms are continuous functions between them, with composition defined as it usually is for functions. This will be useful later.
+
+Before we jump into algebraic topology, there are a few definitions we need.
+
+#definition(title: "subspace topology")[#emph[
+  Let $X$ be a topological space with topology $cal(T)$. Then, for any subset $Y subset.eq X$, we define the subspace topology on $Y$ to be $ cal(T)' = {U inter Y | U in cal(T)}. $
+]]
+
+This can be shown to be a topology on $Y$, so any subset $Y$ of a topological space $X$ is a topological space under the subspace topology.
+
+Consider the topological spaces $S^2$ and $T^2$, where $S^2$ is the $2$D surface of the sphere in $RR^3$, and $T^2$ is the $2$D surface of the torus in $RR^3$, both using the subspace topology induced by the standard topology on $RR^3$. Are $S^2$ and $T^2$ isomorphic as objects of $Top$? Intuitively they are not, because the torus has a hole while the sphere does not. But how do we prove this? One approach is to find a property which is preserved under $Top$ isomorphisms but which exactly one of $S^2$ and $T^2$ satisfies. Such a property is given below.
+
+We want to capture the idea of a subset of $RR^3$ having a hole, because $T^2$ has a hole but $S^2$ does not. The challenge is expressing this in topological language in a way that is preserved under isomorphism. The way we do this is by defining a topological space $X$ to have a hole if it has a loop which cannot be continuously contracted to a point. We must now define what a "loop" is, and what it means to "continuously contract" one.
+
+*TODO: introduce the fundamental group and homotopy groups, and explain why this is a functor $Top -> Grp$*
+
+*TODO: introduce simplicial homology and the functors $Delta -> Top$ and $H_n : Top -> AbGrp$, and the natural transformation $H_n -> H_(n-1)$*
 
 == The Yoneda Lemma
 
