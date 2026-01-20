@@ -20,3 +20,7 @@
 #let Trivial = $cat("Trivial")$
 #let Cat = $cat("Cat")$
 #let Hom = $op("Hom")$
+#let Ab = $op("Ab")$
+#let Fun = $cat("Fun")$
+#let KVect(K) = $#K"-"#h(-0.1em)Vect$
+#let eval = $op("eval")$
