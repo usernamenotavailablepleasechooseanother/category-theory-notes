@@ -17,8 +17,8 @@ Max Misterka
 - Week 2 (Jan 20 - Jan 23)
   - Jan 19: canceled due to the holiday
   - Jan 20: Intro to Algebraic Topology and Homological Algebra (including applications of category theory)
-  - Jan 21: Yoneda Lemma; Enriched and Higher Category Theory
-  - Jan 22: TBD
+  - Jan 21: Lec 5 continued
+  - Jan 22: Yoneda Lemma; Enriched and Higher Category Theory
   - Jan 23: Category Theory in Haskell ("a monad is a monoid in the category of endofunctors")
 
 - Week 3 (Jan 26 -- Jan 29)
@@ -219,7 +219,15 @@ We want to capture the idea of a subset of $RR^3$ having a hole, because $T^2$ h
 
 *TODO: introduce the fundamental group and homotopy groups, and explain why this is a functor $Top -> Grp$*
 
-*TODO: introduce simplicial homology and the functors $Delta -> Top$ and $H_n : Top -> AbGrp$, and the natural transformation $H_n -> H_(n-1)$*
+#image("images/simplicial_chain.png")
+
+#image("images/boundaries.png")
+
+*TODO: introduce simplicial homology, singular homology, and the functors $Delta -> Top$ and $H_n : Top -> AbGrp$, and the natural transformation $H_n => H_(n-1)$*
+
+#image("images/singular.png")
+
+See https://ocw.mit.edu/courses/18-905-algebraic-topology-i-fall-2016/resources/mit18_905f16_lec8/
 
 == The Yoneda Lemma
 
