@@ -3,15 +3,14 @@ module
 public import Mathlib
 public import CommDiag
 
--- public section
-
 /-
-# Category Theory in Lean
+# The Abstract Nonsense Guide to Monads
 
 Useful resources:
 - [A great category theory book](https://raw.githubusercontent.com/BartoszMilewski/DaoFP/refs/heads/master/DaoFP.pdf)
 - [Curry-Howard-Lambek correspondence](https://ncatlab.org/nlab/show/computational+trilogy#rosetta_stone)
 - [Hask is not a category](https://math.andrej.com/2016/08/06/hask-is-not-a-category/)
+- [Another monad explanation](https://old.reddit.com/r/math/comments/ap25mr/a_monad_is_a_monoid_in_the_category_of/)
 
 ## Lean, the category!
 
@@ -192,6 +191,8 @@ instance (α : Type u) : LawfulFunctor (α → ·) where
   id_map := by simp
   comp_map := by simp [Function.comp_assoc]
 
+-- Exercise: Come up with another example of a functor in Lean, and prove it satisfies the functor laws
+
 
 /--
 ## Contravariant functors
@@ -203,7 +204,9 @@ Normal functors, sometimes called covariant functors, map Lean to Lean. Contrava
 
 public class Contrafunctor (F : Type u → Type v) where
   contramap : (β → α) → F α → F β
+  -- `contramap` preserves `id`
   id_contramap (x : F α) : contramap id x = x
+  -- `contramap` preserves function composition
   comp_contramap (g : β → α) (h : γ → β) (x : F α) : contramap (g ∘ h) x = contramap h (contramap g x)
 
 /-- This is not standard notation but just something I made up -/
@@ -243,7 +246,7 @@ A function type is covariant if the free parameter is in an even depth and contr
 /-
 ## Composition of functors
 
-Since functors map Lean to Lean, we can compose two functors to get a new functor.s
+Since functors map Lean to Lean, we can compose two functors to get a new functor. For the object map, we simply compose the object maps of the two functors. To map a morphism `f`, we use the outer functor's `<$>` to map `f` over the inner functor.
 -/
 
 /-- Composition of two functors of same variance is a functor -/
@@ -265,7 +268,7 @@ instance [Contrafunctor F] [Contrafunctor G] : LawfulFunctor (F ∘ G) where
   id_map := by simp [Contrafunctor.id_contramap']
   comp_map f g x := by simp [← Contrafunctor.contramap_comp_contramap]
 
--- If functors are sort of like "containers" for data, then functor composition is like "nesting" two "containers"/
+-- If functors are sort of like "containers" for data, then functor composition is like "nesting" two "containers"
 #synth LawfulFunctor (List ∘ Option)
 
 /-- Composition of functors of opposite variance is a contravariant functor -/
@@ -285,7 +288,9 @@ instance [Contrafunctor F] [Functor G] [LawfulFunctor G] : Contrafunctor (F ∘ 
 
 
 /-
-## Other kinds of functors
+## Other kinds of functors (optional)
+
+We can also define functors for products of categories.
 -/
 
 -- Bifunctors map Lean × Lean to Lean
@@ -300,10 +305,12 @@ instance [Contrafunctor F] [Functor G] [LawfulFunctor G] : Contrafunctor (F ∘ 
 #check MvFunctor
 #check LawfulMvFunctor
 
--- Profunctors are useful for lenses and [optics](https://marcosh.github.io/post/2025/10/07/the-mondrian-introduction-to-functional-optics.html)
+-- Profunctors map Colean × Lean to Lean and are useful for lenses and [optics](https://marcosh.github.io/post/2025/10/07/the-mondrian-introduction-to-functional-optics.html)
 class Profunctor (P : Type u → Type v → Type*) where
   dimap : (σ → α) → (β → τ) → P α β → P σ τ
+  -- `dimap` preserves `id`
   id_dimap (x : P α β) : dimap id id x = x
+  -- `dimap` preserves function composition
   dimap_dimap (f : α₁ → α₀) (f' : α₂ → α₁) (g : β₀ → β₁) (g' : β₁ → β₂) (x : P α₀ β₀) :
     dimap f' g' (dimap f g x) = dimap (f ∘ f') (g' ∘ g) x
 
@@ -323,7 +330,7 @@ instance [Profunctor P] [Profunctor Q] : Profunctor (Procompose P Q) where
   id_dimap := by simp [Profunctor.id_dimap]
   dimap_dimap := by simp [Profunctor.dimap_dimap]
 
--- TODO more commentary, wedge condition
+-- TODO: Is the wedge condition automatically satisfied in Lean?
 abbrev End P [Profunctor P] := ∀ x, P x x
 
 abbrev Coend P [Profunctor P] := Σ x, P x x
@@ -337,6 +344,7 @@ instance [Profunctor P] [Profunctor Q] : Profunctor (ProPair Q P a b) where
   id_dimap := by simp [Profunctor.id_dimap]
   dimap_dimap := by simp [Profunctor.dimap_dimap]
 
+-- We can use coends to compose profunctors
 abbrev CoendCompose P Q [Profunctor P] [Profunctor Q] a b :=
   Coend (ProPair Q P a b)
 
@@ -361,7 +369,11 @@ abbrev NaturalType.{u} (F : Type u → Type v) (G : Type u → Type w) :=
 class Natural F [Functor F] [LawfulFunctor F] G [Functor G] [LawfulFunctor G] (η : NaturalType F G) where
   naturality (f : α → β) (x : F α) : f <$> (η x) = η (f <$> x)
 
+#html natTransDiag
+
 -- In Haskell, naturality is automatically guarenteed because all polymorphic functions in Haskell are parametrically polymorphic functions, which intuitively means that the function does "the same thing" for every type. This is classic example of "theorems for free". However, in Lean we're not so lucky, because a polymorphic function in Lean can do something different depending on its input type.
+
+-- TODO: Proof that parametrically polymorphic and naturality are the same thing
 
 /-- A practical example of a natural transformation -/
 instance : Natural List Option List.head? :=
@@ -375,6 +387,7 @@ abbrev OptionToList : Option α → List α
 instance : Natural Option List OptionToList :=
   ⟨by simp; grind⟩
 
+/-- A natural transformation from the hom-functor to `Option` -/
 noncomputable abbrev FunToOption (f : α → β) : Option β := by
   by_cases h : Nonempty α
   · exact some <| f <| Classical.choice h
@@ -387,63 +400,81 @@ instance : Natural (α → ·) Option FunToOption :=
 class Contranatural F [Contrafunctor F] G [Contrafunctor G] (η : NaturalType F G) where
   naturality (f : β → α) (x : F α) : f <¥> (η x) = η (f <¥> x)
 
--- Vertical composition of natural transformations, which intuitively this is like doing two data moves
+-- Vertical composition of natural transformations, which intuitively is like doing two data moves
 instance [Functor F] [LawfulFunctor F] [Functor G] [LawfulFunctor G] [Functor H] [LawfulFunctor H] [M : Natural F G η] [N : Natural G H μ] :
     Natural F H (fun {α : Type u} ↦ @μ α ∘ @η α) :=
   ⟨by simp [N.naturality, M.naturality]⟩
 
+namespace HorizontalComp
+
+variable (η : NaturalType F F') (μ : NaturalType G G') [Functor F] [LawfulFunctor F] [Functor F'] [LawfulFunctor F'] [Functor G] [LawfulFunctor G] [Functor G'] [LawfulFunctor G']
+
 -- Horizontal composition of natural transformations, which intuitively is like repackaging data in nested "containers"
-instance (η : NaturalType F F') (μ : NaturalType G G') [Functor F] [LawfulFunctor F] [Functor F'] [LawfulFunctor F'] [Functor G] [LawfulFunctor G] [Functor G'] [LawfulFunctor G'] [M : Natural F F' η] [N : Natural G G' μ] :
-    Natural (G ∘ F) (G' ∘ F') (μ ∘ (η <$> ·)) :=
+instance [M : Natural F F' η] [N : Natural G G' μ] : Natural (G ∘ F) (G' ∘ F') (μ ∘ (η <$> ·)) :=
   ⟨by simp [N.naturality, M.naturality]⟩
 
 /-- Alternatively we do `μ` first and then the map second -/
-instance (η : NaturalType F F') (μ : NaturalType G G') [Functor F] [LawfulFunctor F] [Functor F'] [LawfulFunctor F'] [Functor G] [LawfulFunctor G] [Functor G'] [LawfulFunctor G'] [M : Natural F F' η] [N : Natural G G' μ] :
-    Natural (G ∘ F) (G' ∘ F') ((Functor.map (f := G') η ·) ∘ μ) :=
+instance [M : Natural F F' η] [N : Natural G G' μ] : Natural (G ∘ F) (G' ∘ F') ((Functor.map (f := G') η ·) ∘ μ) :=
   ⟨by simp [N.naturality, M.naturality]⟩
 
 /-- The two orderings are equivalent, and this lemma only requires the outer transformation to be natural -/
-lemma horizontal_comp_equiv (η : NaturalType F F') (μ : NaturalType G G') [Functor F] [LawfulFunctor F] [Functor F'] [LawfulFunctor F'] [Functor G] [LawfulFunctor G] [Functor G'] [LawfulFunctor G'] [N : Natural G G' μ] :
-    (μ ∘ (η <$> ·)) x = ((Functor.map (f := G') η ·) ∘ μ) x := by
+lemma horizontal_comp_equiv [N : Natural G G' μ] : (μ ∘ (η <$> ·)) x = ((Functor.map (f := G') η ·) ∘ μ) x := by
   simp [N.naturality]
 
+end HorizontalComp
 
 /-
-## The Yoneda lemma
+## The Yoneda lemma (optional)
 
-TODO: Intuition
+"In his Algebraic Geometry class a few years back, Ravi Vakil explained Yoneda's lemma like this: You work at a particle accelerator. You want to understand some particle. All you can do are throw other particles at it and see what happens. If you understand how your mystery particle responds to all possible test particles at all possible test energies, then you know everything there is to know about your mystery particle." (from https://mathoverflow.net/questions/3184/philosophical-meaning-of-the-yoneda-lemma)
+
+To motivate the Yoneda lemma in Lean, let's say we're trying to come up with a natural transformation from the hom-functor `(α → ·)` to an arbitrary functor `F`. This is a function from `α → β` to `F β`.
 -/
 
 def FunToFunctor [Functor F] [LawfulFunctor F] (g : α → β) : F β :=
   sorry
 
-/-- Yoneda forward map (g is not necessarily natural) -/
-def yoneda (g : NaturalType (α → ·) F) [Functor F] [LawfulFunctor F] : F α :=
-  g id
+/--
+Yoneda reverse map
 
-/-- Yoneda reverse map -/
+If we had some value `x : F α`, then we could get a value of type `F β` using `g <$> x`
+-/
 def yoneda' [Functor F] [LawfulFunctor F] (x : F α) : NaturalType (α → ·) F :=
   (· <$> x)
 
-/-- Reverse map always produces a natural transformation -/
+/-- The reverse map always produces a natural transformation -/
 instance [Functor F] [LawfulFunctor F] : Natural (α → ·) F (yoneda' y) :=
   ⟨fun f x ↦ by simp [yoneda']; rfl⟩
 
 /--
-Mapping and unmapping a natural transformation returns the itself
+Yoneda forward map (`η` is not necessarily natural)
 
-Note that this does not work for an arbitrary function between the hom-functor and `f` because we use the naturality condition.
+If we have some natural transformation `η`, was it produced by some `x : F α`? We can specialize `η` to type `α` so that it has type signature `(α → α) → F α`. Then by feeding it `id`, we get some value of type `F α`!
 -/
-theorem yoneda_lemma (g : NaturalType (α → ·) F) [Functor F] [LawfulFunctor F] [N : Natural (α → ·) F g] : yoneda' (yoneda g) x = g x := by
+def yoneda (η : NaturalType (α → ·) F) [Functor F] [LawfulFunctor F] : F α :=
+  η id
+
+/--
+Mapping and unmapping a natural transformation returns itself!
+
+If we start with some `η`, then extracting out that `x : F α` and using it to construct a natural transformation gives us `η` again. Note that this doesn't work for an arbitrary function between the hom-functor and `F` because we use the naturality condition.
+-/
+theorem yoneda_lemma (η : NaturalType (α → ·) F) [Functor F] [LawfulFunctor F] [N : Natural (α → ·) F η] : yoneda' (yoneda η) x = η x := by
   simp [yoneda, yoneda', N.naturality]
 
 /-- Mapping and unmapping an element `f α` returns itself -/
 theorem yoneda_lemma' (x : F α) [Functor F] [LawfulFunctor F] : yoneda (yoneda' x) = x := by
   simp [yoneda, yoneda']
 
+/-
+Intuitively, using some `x : F α`, we can determine what `η` does when specialized to type `α`, and the behavior of `η` on other types is fully determined because it's parametrically polymorphic.
+
+There's a very similar theorem for contravariant functors.
+-/
+
 /-- Coyoneda forward map -/
-def coyoneda (g : NaturalType (· → α) F) [Contrafunctor F] : F α :=
-  g id
+def coyoneda (η : NaturalType (· → α) F) [Contrafunctor F] : F α :=
+  η id
 
 /-- Coyoneda reverse map -/
 def coyoneda' [Contrafunctor F] (x : F α) : NaturalType (· → α) F :=
@@ -454,18 +485,17 @@ instance [Contrafunctor F] : Contranatural (· → α) F (coyoneda' y) :=
   ⟨fun f x ↦ by simp [coyoneda', Contrafunctor.comp_contramap]⟩
 
 /-- Same but for Coyoneda -/
-theorem coyoneda_lemma (g : NaturalType (· → α) F) [Contrafunctor F] [N : Contranatural (· → α) F g] : coyoneda' (coyoneda g) x = g x := by
+theorem coyoneda_lemma (η : NaturalType (· → α) F) [Contrafunctor F] [N : Contranatural (· → α) F η] : coyoneda' (coyoneda η) x = η x := by
   simp [coyoneda, coyoneda', N.naturality]
 
 /-- Same but for Coyoneda -/
 theorem coyoneda_lemma' (x : F α) [Contrafunctor F] : coyoneda (coyoneda' x) = x := by
   simp [coyoneda, coyoneda', Contrafunctor.id_contramap]
 
--- `yoneda (F := Id)` is just continuation-passing style
+-- Surprisingly, the Yoneda lemma has a few practical applications, such as continuation-passing style. `yoneda (F := Id)` has the type signature `{β} → (α → β) → β`, which is a function that takes a callback. The Yoneda lemma implies that any type `α` can instead be replaced by that function instead.
 #simp [NaturalType] fun (α : Type*) ↦ NaturalType (α → ·) Id
 
--- We can also formulate the Yoneda lemma using profunctors, ends, and coends
--- TODO explanation
+-- TODO: We can also formulate the Yoneda lemma using profunctors, ends, and coends
 def Yo F [Functor F] [LawfulFunctor F] (α x y : Type u) := (α → x) → F y
 
 instance [Functor F] [LawfulFunctor F] : Profunctor (Yo F α) where
@@ -497,16 +527,14 @@ def coyonedaCoend' [Functor F] [LawfulFunctor F] (x : F α) : Coend (Coyo F α) 
 ## Applicative functors and monads
 
 Lean is a purely functional programming language, so functions must only depend on their arguments and have no access to the outside world. Then how can we do IO or have mutable state? The solution is to encode a function's side effects into the return type of the function.
-
-TODO write more
 -/
 
--- Motivation: mapping multi-arg functions
+-- Motivation: mapping multi-argument functions
 #simp (some 3).map (· * ·)
 
 #eval (· * ·) <$> (some 3) <*> (some 4)
 
--- Applicative functors
+-- Applicative functors, which are functors where we can also map multi-argument functions
 #check Applicative
 #check LawfulApplicative
 
@@ -530,19 +558,33 @@ instance [Applicative F] [LawfulApplicative F] [Applicative G] [LawfulApplicativ
 
 -- TODO: Lax monoidal functors
 
-
--- Monads, "warm fuzzy things"
+-- Monads, AKA "warm fuzzy things"
 #check Monad
+-- The monad laws
 #check LawfulMonad
 
+def one_over (x : ℚ) : Option ℚ :=
+  if x = 0 then
+    none -- Division by 0 is undefined
+  else
+    some <| 1 / x
+
+#eval one_over 2
+-- Oops! Can't feed an `Option` into `one_over`.
+#eval one_over (one_over 2)
+
 /-
-- Functors let us apply `α → β` to `f α`
-- Applicatives let us apply `f (a → β)` to `f α`
-- But what about applying an "effectful" function `α → f β` to `f α`, or composing two effectful functions `α → f β` and `β → f γ`?
+- Functors let us apply `α → β` to `F α`
+- Applicatives let us apply `F (a → β)` to `F α`
+- But what about applying an effectful function `α → F β` to `F α`, or composing two effectful functions `α → F β` and `β → F γ`?
 
-Kleisli category: Any monad `m` creates a category where the objects are still types but the morphisms are `α → β` for every `α → f β` in Lean. Then composition of effectful functions becomes composition of morphisms.
+Solution: `>>=`, which enables us to "shove" a `F α` into a function `α → F β`.
+-/
 
-This construction also motivates the monad laws.
+#eval one_over 2 >>= one_over
+
+/-
+Kleisli category: A monad `m` creates a category where the objects are still types but the morphisms are `α → β` for every `α → F β` in Lean. Then composition of effectful functions becomes composition of morphisms. This construction also motivates the monad laws.
 
 In fact, using `>>=` and `pure` we can implement `<$>` and `<*>` so every monad is also a functor and applicative.
 
@@ -559,6 +601,8 @@ Exercise: Find an example of a functor which is not applicative and an applicati
 #synth Monad (Except String)
 #synth Monad (Sum ℕ)
 
+-- Exercise: Come up with another example of a monad in Lean
+
 instance : LawfulMonad Option :=
   LawfulMonad.mk' Option
     (id_map := by simp)
@@ -567,7 +611,6 @@ instance : LawfulMonad Option :=
     (bind_pure_comp := by simp [Option.map]; grind)
 
 #synth LawfulMonad List
-
 
 /--
 This function looks ugly, but we can simplify it with `do` notation, which is syntactic sugar that lets us unwrap monadic values and automatically inserts `>>=` when we use the unwrapped values
@@ -583,12 +626,17 @@ def option_div (x_wrapped : Option ℕ) (y_wrapped : Option ℕ) : Option ℚ :=
 
 #eval option_div (some 3) (some 0)
 
+/-- Much better now! -/
 def option_div' (x_wrapped : Option ℕ) (y_wrapped : Option ℕ) : Option ℚ := do
   let x ← x_wrapped
   let y ← y_wrapped
   if y = 0 then none else some <| x / y
 
-/-- Even the identity monad is powerful! -/
+/--
+Even the identity monad is powerful! We can write code with locally mutable variables, for loops, breaks, and early returns and it gets automatically desugared into nice, purely functional code.
+
+https://dl.acm.org/doi/10.1145/3547640
+-/
 def Array.insSort [LinearOrder α] (A : Array α) := Id.run do
   let N := A.size
   let mut A := A.toVector
@@ -601,7 +649,7 @@ def Array.insSort [LinearOrder α] (A : Array α) := Id.run do
         break
   return A.toArray
 
-/-- List monad demo -/
+/-- We can use `do` notation with any monad, such as the `List` monad -/
 def UpToN (xs : List ℕ) : List ℕ := do
   let x ← xs
   let y ← List.range x
@@ -610,32 +658,31 @@ def UpToN (xs : List ℕ) : List ℕ := do
 #eval UpToN [1, 2, 3]
 
 /-
-Sadly, in general monads do not compose 😿
+Sadly, in general monads do not compose 😿, but in some cases we can use monad transformers to compose them.
 
 https://carlo-hamalainen.net/2014/01/02/applicatives-compose-monads-do-not/
-
-However, in some cases we can use monad transformers to compose them.
 
 TODO: More about monad transformers
 -/
 
-
--- Equivalent definition using "fish"
+-- Equivalent definition of monads using `>=>` (pronounced "fish")
 #check Bind.kleisliRight
--- Equivalent definition using "join"
+-- Equivalent definition of monads using `join`
 #check joinM
--- Exercise: Implement bind using fish
+-- Exercise: Implement `>>=` using `>=>`
+
 
 /-
-"A monad is just a monoid in the category of endofunctors"
+## Monoidal categories
 
-In fact, there is a bijection between the two!
+We're now ready to explain the meme quote "A monad is just a monoid in the category of endofunctors".
 
-https://old.reddit.com/r/math/comments/ap25mr/a_monad_is_a_monoid_in_the_category_of/
+So what's the category of endofunctors in Lean?
 
-The category of Lean endofunctors
-Objects: Endofunctors
-Morphisms: Natural transformations (we showed earlier that vertical composition produces another natural transformation)
+Objects: `LawfulFunctor`s
+Morphisms: Natural transformations
+
+We can compose morphisms using vertical composition, which we proved earlier produces another natural transformation.
 -/
 
 /-- Every object has an identity morphism -/
@@ -651,7 +698,7 @@ lemma nat_trans_comp_assoc (η : NaturalType f g) (μ : NaturalType g h) (ν : N
 #check Monoid
 
 /-
-A monoidal category is a category C equipped with a tensor product ⨂ from C × C to C and an identity object I with certain properties.
+A monoidal category is a category C equipped with a bifunctor ⨂ (called the tensor product) from C × C to C and an identity object I such that ⨂ is associative up to isomorphism, I is an identity with respect to ⨂ up to isomorphism, and some scary diagrams called the coherence conditions commute.
 
 For the category of Lean endofunctors, let ⨂ be functor composition and I be the identity functor `Id`.
 -/
@@ -668,7 +715,7 @@ lemma functor_left_id [Functor F] [LawfulFunctor F] : id ∘ F = F := by
 lemma functor_right_id [Functor F] [LawfulFunctor F] : F ∘ id = F := by
   simp
 
--- The coherence conditions (insert scary pentagon diagram here) are automatically satisfied because here the associator and unitor natural isomorphisms are equalities.
+-- In the category of Lean endofunctors, these properties are satisfied with equalities, not just up to isomorphism, so the coherence conditions (insert scary pentagon diagram here) are automatically satisfied, phew.
 
 /-
 A monoidal object is an object M in (C, ⨂, I) with an arrow μ from M ⨂ M to M and η from I to M such that μ is associative and η is an identity with respect to μ.
@@ -677,24 +724,51 @@ A monoidal object in the category of Lean endofunctors is a functor with natural
 -/
 
 class EndofunctorMonoid M extends Functor M, LawfulFunctor M where
+  -- Has type signature `M (M α) → α`
   join : NaturalType (M ∘ M) M
+  -- Has type signature `α → M α`
   pure : NaturalType Id M
+  /-
+  Adding another `M` layer with `pure` and then removing it with `join` does nothing:
+     M α
+    /   \
+  M (M α)
+  \   /
+   M α
+  -/
   join_pure : (join ∘ pure) x = x
-  -- When using <$>, Lean synthesizes the wrong type class instance for some weird reason
+  /-
+  Adding another `M` layer on the inside with `pure` and then removing the outer layer with `join` does nothing:
+    M α
+     / \
+  M (M α)
+   \   /
+    M α
+  (When using <$>, Lean synthesizes the wrong type class instance here for some weird reason)
+  -/
   join_map_pure : (join ∘ (map pure ·)) x = x
+  /-
+  Removing the inner `M` layer and then the outer layer is the same as removing the outer layer and then the inner layer:
+  M (M (M α))  M (M (M α))
+     \     /   \ /
+    M (M α)  =  M (M α)
+     \   /       \   /
+      M α         M α
+  -/
   join_join : (join ∘ (map join ·)) x = (join ∘ join) x
 
+/-- We can implement `>>=` using a monoid's `join` function -/
 @[simp]
 def bindFromJoin [EndofunctorMonoid M] (join : NaturalType (M ∘ M) M) (x : M α) (f : α → M β) :=
   join (Functor.map (f := M) f x)
 
+/-- Any monoid corresponds to a monad -/
 @[simp]
 instance [EndofunctorMonoid M] : Monad M where
   pure := EndofunctorMonoid.pure
   bind := bindFromJoin EndofunctorMonoid.join
 
--- TODO: This only works for `m` from `Type u → Type u`, but monads can be `Type u → Type v` in Lean
-/-- A monoid in the category of endofunctors is a monad -/
+/-- A monoid in the category of endofunctors is a monad! -/
 instance [EndofunctorMonoid M] [J : Natural (M ∘ M) M EndofunctorMonoid.join] [P : Natural Id M EndofunctorMonoid.pure] : LawfulMonad M :=
   LawfulMonad.mk' M id_map
     (pure_bind := fun x f ↦ by
@@ -707,11 +781,12 @@ instance [EndofunctorMonoid M] [J : Natural (M ∘ M) M EndofunctorMonoid.join] 
     (bind_pure_comp := fun f x ↦ by
       simpa using EndofunctorMonoid.join_map_pure (x := f <$> x))
 
+/-- Similarly, we can implement `join` using `>>=` -/
 @[simp]
 def joinFromBind [Monad M] (bind : {α β : Type u} → M α → (α → M β) → M β) (x : M (M α)) :=
   bind x id
 
-/-- A monad is a monoid in the category of endofunctors -/
+/-- A monad is a monoid in the category of endofunctors! -/
 @[simp]
 instance [Monad M] [LawfulMonad M] : EndofunctorMonoid M where
   pure := pure
@@ -726,26 +801,28 @@ instance [Monad M] [LawfulMonad M] : Natural (M ∘ M) M EndofunctorMonoid.join 
 instance [Monad M] [LawfulMonad M] : Natural Id M EndofunctorMonoid.pure :=
   ⟨by simp [Functor.map]⟩
 
-/-- `bindFromJoin` and `joinFromBind` form a bijection -/
+/-- `bindFromJoin` and `joinFromBind` form a bijection, so thus monads are the same thing as monoids in the category of endofunctors -/
 theorem bind_join_equiv [Monad M] [LawfulMonad M] : (bindFromJoin (M := M) (joinFromBind bind)) x f = bind x f := by
   simp
 
 theorem bind_join_equiv' [E : EndofunctorMonoid M] : joinFromBind (bindFromJoin E.join) x = E.join x := by
   simp
 
+-- Wait, not so fast! There's a subtle problem: universes. In Lean, monads can be from `Type u → Type v`, while monoids have to be from `Type u → Type u` in order to compose the monoid with itself. If `u > v`, then we can instead define
 
 -- TODO: Monads and adjunctions
 
 -- TODO: String diagrams
 
 
--- Unlike Haskell, Lean is powerful enough that we can also use it for doing category theory in any category, not just the category Lean
+/-
+## Category theory in Lean
+
+Unlike Haskell, Lean is powerful enough that we can also use it for doing category theory in any category, not just the category Lean.
+-/
+
 #check CategoryTheory.Category
-
 #check CategoryTheory.Functor
-
 #check CategoryTheory.yoneda
-
 #check CategoryTheory.Monad
-
 #check CategoryTheory.Monad.monadMonEquiv

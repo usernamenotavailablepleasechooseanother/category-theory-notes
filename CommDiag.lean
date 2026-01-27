@@ -80,3 +80,16 @@ IsDashed(fc)"
   #[("A", ec `α), ("B", ec `β), ("C", ec `γ), ("FA", .app (ec `F) (ec `α)), ("FB", .app (ec `F) (ec `β)), ("FC", .app (ec `F) (ec `γ)), ("f", ec `f), ("g", ec `g), ("h", Lean.mkApp5 (e3 ``Function.comp) (ec ``Nat) (ec ``Nat) (ec ``Nat) (ec `g) (ec `h)), ("ff", .app (ec `F) (ec `f)), ("fg", .app (ec `F) (ec `g)), ("fh", .app (ec `F) (Lean.mkApp5 (e3 ``Function.comp) (ec ``Nat) (ec ``Nat) (ec ``Nat) (ec `g) (ec `h))), ("ffg", (Lean.mkApp5 (e3 ``Function.comp) (ec ``Nat) (ec ``Nat) (ec ``Nat) (.app (ec `F) (ec `g)) (.app (ec `F) (ec `f))))]
 
 #html functorCompDiag
+
+def natTransDiag := mkCommDiag "Object FX,GX,FY,GY
+Cell ax := MakeCell(FX,GX)
+Cell ff := MakeCell(FX,FY)
+Cell ay := MakeCell(FY,GY)
+Cell gf := MakeCell(GX,GY)
+IsDownVertical(ax)
+IsRightHorizontal(ff)
+IsDownVertical(ay)
+IsRightHorizontal(gf)"
+  #[("FX", .app (ec `F) (ec `x)), ("GX", .app (ec `G) (ec `x)), ("FY", .app (ec `F) (ec `Y)), ("GY", .app (ec `G) (ec `Y)), ("ax", .app (ec `α) (ec `x)), ("ff", .app (ec `F) (ec `f)), ("ay", .app (ec `α) (ec `y)), ("gf", .app (ec `G) (ec `f))]
+
+#html natTransDiag
