@@ -7,6 +7,7 @@ public import CommDiag
 # The Abstract Nonsense Guide to Monads
 
 Useful resources:
+- [Monad chapter in FPIL](https://lean-lang.org/functional_programming_in_lean/Monads/)
 - [A great category theory book](https://raw.githubusercontent.com/BartoszMilewski/DaoFP/refs/heads/master/DaoFP.pdf)
 - [Curry-Howard-Lambek correspondence](https://ncatlab.org/nlab/show/computational+trilogy#rosetta_stone)
 - [Hask is not a category](https://math.andrej.com/2016/08/06/hask-is-not-a-category/)
